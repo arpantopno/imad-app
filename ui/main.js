@@ -38,7 +38,7 @@ submit.onclick = function() {
             }
         }
     };
-    request.open('GET', 'http://arpansharon.imad.hasura-app.io/submit-name?name=' + name, true);
+    request.open('GET', 'http://arpansharon.imad.hasura-app.io/submit-name?name=' + name, false);
     request.send(null);
     var ul = document.getElementById('namelist');
     ul.innerHTML = list;
