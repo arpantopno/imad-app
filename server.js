@@ -33,7 +33,7 @@ var articles = {
     heading: 'Article 3',
     date: 'August 9, 2017',
     content: `<p>
-                    This is the content of second article.
+                    This is the content of third article.
                 </p>`
 }
 };
@@ -48,7 +48,7 @@ function createTemplate(data) {
             <title>${title}</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <link href="/ui/style.css" rel="stylesheet" />
-        <script type="text/javascript" src="http://gc.kis.v2.scr.kaspersky-labs.com/6D3CB950-6BEE-DB4E-A25A-61090293E4B9/main.js" charset="UTF-8"></script></head>
+        </head>
         <body>
             <div class="container">
                 <div>
