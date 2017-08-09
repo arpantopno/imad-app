@@ -18,3 +18,9 @@ button.onclick = function () {
     request.open('GET', 'http://arpansharon.imad.hasura-app.io/counter', true);
     request.send(null);
 };
+
+var name = document.getElementById('name').value;
+var submit = document.getElementById('submit');
+submit.onclick = function() {
+    var names = ['name1', 'name2', 'name3'];
+};
