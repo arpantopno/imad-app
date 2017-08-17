@@ -15,6 +15,39 @@ var config = {
 
 var pool = new Pool(config);
 
+function createTemplate (data) {
+    var title = data.title;
+    var date = data.date;
+    var heading = data.heading;
+    var cantent = data.content;
+    var htmlTemplate = `
+    <!doctype html>
+    <html>
+        <head>
+            <title>${title}</title>
+            <link href="/ui/style.css" rel="stylesheet" />
+        </head>
+        <body>
+            <div class="container">
+                <div>
+                    <a href="/">Home</a>
+                </div>
+                <div>
+                    ${heading}
+                </div>
+                <div>
+                    ${date}
+                </div>
+                <div>
+                    ${content}
+                </div>
+            </div>
+            <script type="text/javascript" src="ui/main.js"></script>
+        </body>
+    </html>
+    `;
+}
+
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'ui', 'index.html'));
 });
@@ -22,11 +55,26 @@ app.get('/', function (req, res) {
 app.get('/test-db', function (req, res){
   pool.query('SELECT * FROM test', function(err, result){
       if(err) {
-          res.send(500).send(err).toString();
+          res.send(500).send(err.toString());
       } else {
           res.send(JSON.stringify(result));
       }
   });
+});
+
+app.get('/articles/:articleName', function(req, res){
+    pool.query("SELECT * FROM article WHERE title  = "+req.params.articleName, function(err, result){
+       if(err) {
+          res.status(500).send(err.toString());
+      } else {
+          if (result.rows.length === 0) {
+              res.status(404).send('Article not found.');
+          } else {
+              var articleData = result.rows[0];
+              res.send(createTemplate(articles[articleData]));
+          }
+      } 
+    });
 });
 
 var counter = 0;
