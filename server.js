@@ -2,11 +2,17 @@ var express = require('express');
 var morgan = require('morgan');
 var path = require('path');
 var Pool = require('pg').Pool;
-var app = express();
 var crypto = require('crypto');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+
+var app = express();
 app.use(morgan('combined'));
 app.use(bodyParser.json());
+app.use(session({
+    secret: 'SomeRandomValue',
+    cookie: { maxAge: 2592000000}
+}));
 
 var config = {
     user: 'arpansharon',
@@ -106,12 +112,21 @@ app.post('/login', function (req, res) {
               var hashedPassword = hash(password, salt);
               if (hashedPassword === dbString) {
                   res.send('Correct');
+                  req.session.auth = {userId: result.rows[0].id};
               } else {
                   res.send(403).send('username/password is invalid');
               }
           }
       }
   });
+});
+
+app.get('/check-login', function (req, res) {
+  if(req.session && req.session.auth && req.session.auth.userId) {
+      res.send('You are logged in: ' + req.session.auth.userId.toString());
+  } else {
+      res.send('You are not logged in');
+  }
 });
 
 app.get('/ui/style.css', function (req, res) {
