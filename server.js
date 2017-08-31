@@ -83,7 +83,7 @@ function hash (input, salt) {
     return ['pbkdf2', "10000", salt, hashed.toString('hex')].join('$');
 }
 
-app.post('/create-user', function (req, res) {
+app.post('/register', function (req, res) {
     var username = req.body.username;
     var password = req.body.password;
   var salt = crypto.randomBytes(128).toString('hex');
@@ -121,13 +121,6 @@ app.post('/login', function (req, res) {
   });
 });
 
-app.get('/check-login', function (req, res) {
-  if(req.session && req.session.auth && req.session.auth.userId) {
-      res.send('You are logged in: ' + req.session.auth.userId.toString());
-  } else {
-      res.send('You are not logged in');
-  }
-});
 
 app.get('/logout', function (req, res) {
   delete req.session.auth;
