@@ -122,7 +122,7 @@ app.post('/login', function (req, res) {
 });
 
 app.get('/chk', function (req, res) {
-  if(req.session.auth) {
+  if(req.session.auth.userId) {
       res.send('Logged in');
   } else {
       res.send(403);
