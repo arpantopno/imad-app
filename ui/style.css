@@ -18,10 +18,15 @@ body {
 .img-medium {
     height: 200px;
 }
+
 .container {
         max-width: 800px;
         margin: 0 auto;
         color: #4a4a4a;
         padding: 0 20px;
         font-family:sans-serif;
-            }
+}
+
+.form {
+    padding: 20px;
+}
