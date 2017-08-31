@@ -121,6 +121,13 @@ app.post('/login', function (req, res) {
   });
 });
 
+app.get('/chk', function (req, res) {
+  if(req.session.auth) {
+      res.send('Logged in');
+  } else {
+      res.send(403);
+  }
+});
 
 app.get('/logout', function (req, res) {
   delete req.session.auth;
