@@ -24,93 +24,53 @@ var config = {
 
 var pool = new Pool(config);
 
-function index () {
-    var id;
-    var data;
-    if(req.session.auth && req.session.auth.userId) {
-        id = req.session.auth.userId;
-        data = 'Logged in ID: ' + id + '<br><a href="/logout">Logout</a>';
-    } else {
-        data = `<h3>Login/Register:</h3> Username: <input type="text" id="username"><br>Password: <input type="password" id="password">
-        <br><input type="submit" id="login" value="Login"><input type="submit" id="register" value="Register">`;
-    }
-    var htmlTemplate = `
-    <!doctype html>
-<html>
-    <head>
-        <title>App</title>
-        <link href="/ui/style.css" rel="stylesheet" />
-    </head>
-    <body onload="chk()">
-        <div class="container">
-            <div class="center">
-                <h3>Welcome</h3>
-            </div>
-            <hr>
-            <div>
-                ${data}
-            </div>
-            <hr>
-        </div>
-        <script type="text/javascript" src="ui/main.js"></script>
-    </body>
-</html>
-    `;
-    return htmlTemplate;
-}
-
 function createTemplate (data) {
     var title = data.title;
     var date = data.date;
     var heading = data.heading;
     var content = data.content;
     var htmlTemplate = `
-    <!doctype html>
-    <html>
-        <head>
-            <title>${title}</title>
-            <link href="/ui/style.css" rel="stylesheet" />
-        </head>
-        <body>
-            <div class="container">
-                <div>
-                    <a href="/">Home</a>
-                </div>
-                <hr>
-                <div>
-                    <h3>${heading}</h3>
-                </div>
-                <div>
-                    ${date.toDateString()}
-                </div>
-                <div>
-                    ${content}
-                </div>
-            </div>
-            <script type="text/javascript" src="ui/main.js"></script>
-        </body>
+    <!DOCTYPE html>
+ <html>
+      <head>
+          <title>
+              ${title}
+          </title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link href="/ui/style.css" rel="stylesheet" />
+      </head> 
+      <body>
+          <div class="container">
+              <div>
+                  <a href="/">Home</a>
+              </div>
+              <hr/>
+              <h3>
+                  ${heading}
+              </h3>
+              <div>
+                  ${date.toDateString()}
+              </div>
+              <div>
+                ${content}
+              </div>
+              <hr/>
+              <h4>Comments</h4>
+              <div id="comment_form">
+              </div>
+              <div id="comments">
+                <center>Loading comments...</center>
+              </div>
+          </div>
+          <script type="text/javascript" src="/ui/article.js"></script>
+      </body>
     </html>
     `;
     return htmlTemplate;
 }
 
 app.get('/', function (req, res) {
-  res.send(index());
-});
-
-app.get('/articles/:articleName', function(req, res){
-    pool.query("SELECT * FROM article WHERE title  = $1", [req.params.articleName], function(err, result){
-       if(err) {
-          res.status(500).send(err.toString());
-      } else {
-          if (result.rows.length === 0) {
-              res.status(404).send('Article not found.');
-          } else {
-              var articleData = result.rows[0];
-              res.send(createTemplate(articleData));
-          }
-      } 
-    });
+  res.sendFile(path.join(__dirname, 'ui', 'index.html'));
 });
 
 function hash (input, salt) {
@@ -118,7 +78,7 @@ function hash (input, salt) {
     return ['pbkdf2', "10000", salt, hashed.toString('hex')].join('$');
 }
 
-app.post('/register', function (req, res) {
+app.post('/create-user', function (req, res) {
     var username = req.body.username;
     var password = req.body.password;
   var salt = crypto.randomBytes(128).toString('hex');
@@ -156,31 +116,100 @@ app.post('/login', function (req, res) {
   });
 });
 
-app.get('/chk', function (req, res) {
-  if(req.session.auth && req.session.auth.userId) {
-      res.send('Logged in');
-  } else {
-      res.send(403);
-  }
+app.get('/check-login', function (req, res) {
+  if (req.session.auth && req.session.auth.userId) {
+       // Load the user object
+       pool.query('SELECT * FROM "user" WHERE id = $1', [req.session.auth.userId], function (err, result) {
+           if (err) {
+              res.status(500).send(err.toString());
+           } else {
+              res.send(result.rows[0].username);    
+           }
+       });
+   } else {
+       res.status(400).send('You are not logged in');
+   }
 });
 
 app.get('/logout', function (req, res) {
   delete req.session.auth;
-  res.send('Logged out');
+  res.send('<html><body>Logged out!<br/><br/><a href="/">Back to home</a></body></html>');
 });
 
-app.get('/ui/style.css', function (req, res) {
-  res.sendFile(path.join(__dirname, 'ui', 'style.css'));
+app.get('/get-articles', function (req, res) {
+   // make a select request
+   // return a response with the results
+   pool.query('SELECT * FROM article ORDER BY date DESC', function (err, result) {
+      if (err) {
+          res.status(500).send(err.toString());
+      } else {
+          res.send(JSON.stringify(result.rows));
+      }
+   });
 });
 
-app.get('/ui/main.js', function (req, res) {
-  res.sendFile(path.join(__dirname, 'ui', 'main.js'));
+app.get('/get-comments/:articleName', function (req, res) {
+   // make a select request
+   // return a response with the results
+   pool.query('SELECT comment.*, "user".username FROM article, comment, "user" WHERE article.title = $1 AND article.id = comment.article_id AND comment.user_id = "user".id ORDER BY comment.timestamp DESC', [req.params.articleName], function (err, result) {
+      if (err) {
+          res.status(500).send(err.toString());
+      } else {
+          res.send(JSON.stringify(result.rows));
+      }
+   });
 });
 
-app.get('/ui/madi.png', function (req, res) {
-  res.sendFile(path.join(__dirname, 'ui', 'madi.png'));
+app.post('/submit-comment/:articleName', function (req, res) {
+   // Check if the user is logged in
+    if (req.session && req.session.auth && req.session.auth.userId) {
+        // First check if the article exists and get the article-id
+        pool.query('SELECT * from article where title = $1', [req.params.articleName], function (err, result) {
+            if (err) {
+                res.status(500).send(err.toString());
+            } else {
+                if (result.rows.length === 0) {
+                    res.status(400).send('Article not found');
+                } else {
+                    var articleId = result.rows[0].id;
+                    // Now insert the right comment for this article
+                    pool.query(
+                        "INSERT INTO comment (comment, article_id, user_id) VALUES ($1, $2, $3)",
+                        [req.body.comment, articleId, req.session.auth.userId],
+                        function (err, result) {
+                            if (err) {
+                                res.status(500).send(err.toString());
+                            } else {
+                                res.status(200).send('Comment inserted!')
+                            }
+                        });
+                }
+            }
+       });     
+    } else {
+        res.status(403).send('Only logged in users can comment');
+    }
 });
 
+app.get('/articles/:articleName', function (req, res) {
+  // SELECT * FROM article WHERE title = '\'; DELETE WHERE a = \'asdf'
+  pool.query("SELECT * FROM article WHERE title = $1", [req.params.articleName], function (err, result) {
+    if (err) {
+        res.status(500).send(err.toString());
+    } else {
+        if (result.rows.length === 0) {
+            res.status(404).send('Article not found');
+        } else {
+            var articleData = result.rows[0];
+            res.send(createTemplate(articleData));
+        }
+    }
+  });
+});
+
+app.get('/ui/:fileName', function (req, res) {
+  res.sendFile(path.join(__dirname, 'ui', req.params.fileName));
+});
 
 // Do not change port, otherwise your app won't run on IMAD servers
 // Use 8080 only for local development if you already have apache running on 80
