@@ -24,6 +24,41 @@ var config = {
 
 var pool = new Pool(config);
 
+function index () {
+    var id;
+    var data;
+    if(req.session.auth && req.session.auth.userId) {
+        id = req.session.auth.userId;
+        data = 'Logged in ID: ' + id + '<br><a href="/logout">Logout</a>';
+    } else {
+        data = `<h3>Login/Register:</h3> Username: <input type="text" id="username"><br>Password: <input type="password" id="password">
+        <br><input type="submit" id="login" value="Login"><input type="submit" id="register" value="Register">`;
+    }
+    var htmlTemplate = `
+    <!doctype html>
+<html>
+    <head>
+        <title>App</title>
+        <link href="/ui/style.css" rel="stylesheet" />
+    </head>
+    <body onload="chk()">
+        <div class="container">
+            <div class="center">
+                <h3>Welcome</h3>
+            </div>
+            <hr>
+            <div>
+                ${data}
+            </div>
+            <hr>
+        </div>
+        <script type="text/javascript" src="ui/main.js"></script>
+    </body>
+</html>
+    `;
+    return htmlTemplate;
+}
+
 function createTemplate (data) {
     var title = data.title;
     var date = data.date;
@@ -60,7 +95,7 @@ function createTemplate (data) {
 }
 
 app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'ui', 'index.html'));
+  res.send(index());
 });
 
 app.get('/articles/:articleName', function(req, res){
