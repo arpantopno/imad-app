@@ -87,7 +87,7 @@ app.post('/create-user', function (req, res) {
       if(err) {
           res.send(500).send(err.toString());
       } else {
-          res.send('User sucessfully created: '+ username);
+          res.send('{"message":"User sucessfully created"}');
       }
   });
 });
@@ -100,16 +100,16 @@ app.post('/login', function (req, res) {
           res.send(500).send(err.toString());
       } else {
           if(result.rows.length === 0) {
-              res.send(403).send('username/password is invalid');
+              res.send(403).send('{"error":"username/password incorrect"}');
           } else {
               var dbString = result.rows[0].password;
               var salt = dbString.split('$')[2];
               var hashedPassword = hash(password, salt);
               if (hashedPassword === dbString) {
                   req.session.auth = {userId: result.rows[0].id};
-                  res.send('Correct');
+                  res.send('{"message":"you have logged in sucessfully"}');
               } else {
-                  res.send(403).send('username/password is invalid');
+                  res.send(403).send('{"error":"username/password incorrect"}');
               }
           }
       }
