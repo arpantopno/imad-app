@@ -19,6 +19,7 @@ function loadLoginForm () {
         request.onreadystatechange = function () {
           if (request.readyState === XMLHttpRequest.DONE) {
               // Take some action
+              console.log(request.responseText);
               if (request.status === 200) {
                   submit.value = 'Sucess!';
               } else if (request.status === 403) {
@@ -55,6 +56,7 @@ function loadLoginForm () {
         // Capture the response and store it in a variable
         request.onreadystatechange = function () {
           if (request.readyState === XMLHttpRequest.DONE) {
+              console.log(request.responseText);
               // Take some action
               if (request.status === 200) {
                   alert('User created successfully');
@@ -92,6 +94,7 @@ function loadLogin () {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (request.readyState === XMLHttpRequest.DONE) {
+            console.log(request.responseText);
             if (request.status === 200) {
                 loadLoggedInUser(this.responseText);
             } else {
